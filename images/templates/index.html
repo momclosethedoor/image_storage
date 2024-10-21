@@ -1,0 +1,85 @@
+{% load static %}
+
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Shortlink</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+<body>
+    <div class="center">
+        <div id='result' class='d-none'>
+            <div id='shortlink1'>
+            </div>
+            <div id='shortlink2'>
+            </div>
+            <button id='repeat_button' type="submit" class="btn btn-light">ЕЩЁ</button>
+        </div>
+        <form id='get_shortlink'>
+            <div class="form-outline" data-mdb-input-init>
+                <h1><label class="form-label" for="typeURL">Прикрепите картинку для загрузки</label></h1>
+                <input type="file" name='image' id="formFileLg" class="form-control form-control-lg"/>
+              </div>
+            <button id='send_button' type="submit" class="btn btn-light">Загрузить!</button>
+        </form>
+    </div>
+</body>
+</html>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    const butt = document.querySelector("#send_button");
+    const butt_repeat = document.querySelector("#repeat_button");
+    const img = document.querySelector("#formFileLg");
+    var file = ''
+
+    butt.addEventListener("click", buttClick, false);
+    butt_repeat.addEventListener("click", buttRepeatClick, false);
+    $('input[type=file]').on('change', prepareUpload);
+
+    function prepareUpload(event) {
+        file = event.target.files;
+    }
+
+    function buttRepeatClick(event) {
+        event.preventDefault();
+        $( "#result" ).addClass('d-none');
+        $( "form" ).removeClass('d-none');
+    };
+
+    function buttClick(event) {
+        event.preventDefault();
+        var path = img.value
+        if (path == '') {
+            alert("Please upload an image");
+            return;
+        } else {
+            var Extension = path.substring(path.lastIndexOf('.') + 1).toLowerCase();
+        }
+        if (Extension == "gif" || Extension == "png" || Extension == "bmp" || Extension == "jpeg" || Extension == "jpg") {
+            var form = new FormData()
+            form.append('image', file[0])
+            $.ajax({
+                url: "/images/api",
+                method: 'POST',
+                data: form,
+                processData: false,
+                contentType: false,
+                success: function( result ) {
+                  $( "form" ).addClass('d-none');
+                  $( "#shortlink1" ).html( "<h1>Ссылка для просмотра картинки -> <strong><a href='" + result['link'] + "'>"+ result['link'] +"</a></strong></h1>" );
+                  $( "#shortlink2" ).html( "<h1>Картинка <strong>-> <a href='" + result['img_url'] + "'>ТУТ</a> <-</strong></h1>" );
+                  $( "#result" ).removeClass('d-none');
+                  img.value = '';
+                }
+              });
+        } else {
+            alert("Photo only allows file types of GIF, PNG, JPG, JPEG and BMP. ");
+            img.value = '';
+            return;
+        }
+      }
+</script>
